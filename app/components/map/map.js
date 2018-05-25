@@ -35,4 +35,64 @@ export class Map extends Component {
       'https://cartocdn-ashbu.global.ssl.fastly.net/ramirocartodb/api/v1/map/named/tpl_756aec63_3adb_48b6_9d14_331c6cbc47cf/all/{z}/{x}/{y}.png',
       { crs: L.CRS.EPSG4326 }).addTo(this.map)
   }
+
+  addLocationGeojson (layerTitle, geojson, iconUrl) {
+    this.layers[layerTitle] = L.geoJSON(geojson, {
+      pointToLayer: (feature, latlng) => {
+        return L.marker(latlng, {
+          icon: L.icon({ iconUrl, iconSize: [ 24, 56 ] }),
+          title: feature.properties.name
+        })
+      },
+      onEachFeature: this.onEachLocation.bind(this)
+    })
+  }
+
+  onEachLocation (feature, layer) {
+    layer.bindPopup(feature.properties.name, { closeButton: false })
+    layer.on({ click: e => {
+      this.setHighlightedRegion(null)
+      const { name, id, type } = feature.properties
+      this.triggerEvent('locationSelected', { name, id, type })
+    }})
+  }
+
+  addKingdomGeojson (geojson) {
+    this.layers.kingdom = L.geoJSON(geojson, {
+      style: {
+        'color': '#222',
+        'weight': 1,
+        'opacity': 0.65
+      },
+      onEachFeature: this.onEachKingdom.bind(this)
+    })
+  }
+
+  onEachKingdom (feature, layer) {
+    layer.on({ click: e => {
+      const { name, id } = feature.properties
+      this.map.closePopup()
+      this.setHighlightedRegion(layer)
+      this.triggerEvent('locationSelected', { name, id, tyoe: 'kingdom' })
+    }})
+  }
+
+  setHighlightedRegion (layer) {
+    if (this.selected) { this.layers.kingdom.resetStyle(this.selected) }
+
+    this.selected = layer
+    if (this.selected) {
+      this.selected.bringToFront()
+      this.selected.setStyle({ color: 'blue' })
+    }
+  }
+
+  toggleLayer (layerName) {
+    const layer = this.layers[layerName]
+    if (this.map.hasLayer(layer)) {
+      this.map.removeLayer(layer)
+    } else {
+      this.map.addLayer(layer)
+    }
+  }
 }

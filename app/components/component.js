@@ -2,7 +2,7 @@
  * Base component class to provide view ref binding, template insertion, and event listener setup
  */
 export class Component {
-  /** SearchPanel Component Constructor
+  /** Base Component Constructor
    * @param { String } placeholderId - Element ID to inflate the component into
    * @param { Object } props - Component properties
    * @param { Object } props.events - Component event listeners
